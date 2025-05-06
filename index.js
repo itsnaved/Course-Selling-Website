@@ -3,19 +3,56 @@ const app= express();
 const port= 3000;
 app.use(express.json());
 
+let ADMIN= [];
+let COURSES= [];
+let USERS= [];
+
+const adminAuthentication= (req, res, next)=>{
+    const {username, password}= req.headers;
+    let admin= ADMIN.find(a=> a.username=== username && a.password=== password);
+    if(admin){
+        next();
+    }
+    else{
+        res.status(403).json({message: "Admin Authentication Failed"});
+    }
+}
+
+const userAuthentication= (req, res, next)=>{
+    const {username, password}= req.headers;
+    let user= USERS.find(a=> a.username=== username && a.password=== password);
+    if(user){
+        req.user= user;
+        next();
+    }
+    else{
+        res.status(403).json({message: "User Authentication Failed"});
+    }
+}
 // ADMIN Routes
 
 app.post("/admin/signup", adminAuthentication, (req, res)=>{
-    res.send("Admin Signup Succesful");
+    const admin = req.body;
+    const existingAdmin = ADMIN.find(a=> a.username=== admin.username);
+    if(existingAdmin){
+        res.status(403).json({message: "Admin Already Exists"});
+    }else{
+        ADMIN.push(admin);
+        res.json({message: "Admin Created Succesfully"});
+    }
 });
 
-app.post("/admin/login",(req, res)=>{
-    res.send("Login Succesful");
+app.post("/admin/login", adminAuthentication, (req, res)=>{
+    res.json({message: "Logged in succesfully "});
 
-})
+});
 
-app.post("/admin/courses",(req, res)=>{
-    res.send("Course Added succesfull");
+app.post("/admin/courses", adminAuthentication, (req, res)=>{
+    const course= req.body;
+
+    course.id= Date.now();
+    COURSES.push(course);
+    res.json({message: "Course Added Succesfully"});
 
 });
 
