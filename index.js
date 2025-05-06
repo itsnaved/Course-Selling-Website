@@ -31,7 +31,7 @@ const userAuthentication= (req, res, next)=>{
 }
 // ADMIN Routes
 
-app.post("/admin/signup", adminAuthentication, (req, res)=>{
+app.post("/admin/signup", (req, res)=>{
     const admin = req.body;
     const existingAdmin = ADMIN.find(a=> a.username=== admin.username);
     if(existingAdmin){
@@ -52,17 +52,25 @@ app.post("/admin/courses", adminAuthentication, (req, res)=>{
 
     course.id= Date.now();
     COURSES.push(course);
-    res.json({message: "Course Added Succesfully"});
+    res.json({message: "Course Added Succesfully", courseId: course.id});
 
 });
 
-app.put("/admin/courses/:courseId",(req, res)=>{
-    res.send("Courses Edited Succesfully");
+///course update route
+app.put("/admin/courses/:courseId", adminAuthentication, (req, res)=>{
+    courseId= parseInt(req.params.courseId);
+    course= COURSES.find(c=> c.id=== courseId);
 
+    if(course){
+        Object.assign(course, req.body);
+        res.json({message: "Message Updated Succesfully"});
+    }else{
+        res.status(404).json({message: "Course not Found"});
+    }
 });
 
 app.get("/admin/courses",(req, res)=>{
-    res.send("All Courses List");
+    res.json({courses: COURSES});
 
 });
 
