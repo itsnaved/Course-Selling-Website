@@ -77,17 +77,18 @@ app.get("/admin/courses",(req, res)=>{
 /// USER ROUTES
 
 app.post("/users/signup",(req, res)=>{
-    res.send("User Signup Succesful");
-
+    const user= {...req.body, purchasedCourses:[]};
+    USERS.push(user);
+    res.json({message: "User Created Succesfully"});
 });
 
-app.post("/users/login",(req, res)=>{
-    res.send("User login succesful");
-
+app.post("/users/login", userAuthentication, (req, res)=>{
+    res.json({message:"Logged in Succesfully"});
 });
 
-app.get("/users/courses",(req, res)=>{
-    res.send("All Courses List");
+app.get("/users/courses", userAuthentication, (req, res)=>{
+    let filteredCourses = COURSES.filter(c=> c.published);
+    res.json({courses: filteredCourses});
 
 });
 
