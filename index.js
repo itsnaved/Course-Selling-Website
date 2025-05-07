@@ -91,36 +91,58 @@ app.get("/admin/courses",authenticatejwt,(req, res)=>{
 /// USER ROUTES
 
 app.post("/users/signup",(req, res)=>{
-    const user= {...req.body, purchasedCourses:[]};
-    USERS.push(user);
-    res.json({message: "User Created Succesfully"});
+    const user= req.body;
+    const existingUser= USERS.find(u=> u.username== user.username);
+    if(existingUser){
+        res.status(403).json({message:"User Already Exists"});
+    }else{
+        USERS.push(user);
+        const token= generateJwt(user);
+        res.json({message:"User Created Succesfully "});
+    }
 });
 
 app.post("/users/login", (req, res)=>{
-    res.json({message:"Logged in Succesfully"});
+    const {username, password}= req.headers;
+    const user= USERS.find(u=> u.username=== username && u.password=== password);
+    if(user){
+        const token = generateJwt(user);
+        res.json({message: "Logged in Succesfully ", token});
+    }else{
+        res.status(403).json({message: "User Authentication Failed"});
+    }
 });
 
-app.get("/users/courses", (req, res)=>{
-    let filteredCourses = COURSES.filter(c=> c.published);
-    res.json({courses: filteredCourses});
-
+app.get("/users/courses",authenticatejwt, (req, res)=>{
+    res.json({courses: COURSES});
 });
 
-app.post("/users/courses/:courseId", (req, res)=>{
+app.post("/users/courses/:courseId", authenticatejwt, (req, res)=>{
     const courseId = parseInt(req.params.courseId);
     const course= COURSES.find(c=> c.id=== courseId && c.published);
     if(course){
-        req.user.purchasedCourses.push(courseId);
-        res.json({message: "Course purchased Succesfully "})
-    }else{
-        res.status(403).json({message:"Course not found"});
+        const user = USERS.find(u => u.username === req.user.username);
+    if (user) {
+      if (!user.purchasedCourses) {
+        user.purchasedCourses = [];
+      }
+      user.purchasedCourses.push(course);
+      res.json({ message: 'Course purchased successfully' });
+    } else {
+      res.status(403).json({ message: 'User not found' });
     }
-
+    }else{
+        res.status(404).json({message:"Course not found"});
+    }
 });
 
-app.get("/users/purchasedCourses", (req, res)=>{
-    const purchasedCourses= COURSES.filter(c=> req.user.purchasedCourses.includes(c.id));
-    res.json({purchasedCourses});
+app.get("/users/purchasedCourses", authenticatejwt, (req, res)=>{
+    const user = USERS.find(u => u.username === req.user.username);
+    if (user && user.purchasedCourses) {
+      res.json({ purchasedCourses: user.purchasedCourses });
+    } else {
+      res.status(404).json({ message: 'No courses purchased' });
+    }
 })
 app.listen(port, ()=>{
     console.log(`Example app listening on port: ${port}`);
