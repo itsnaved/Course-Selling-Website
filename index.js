@@ -11,7 +11,7 @@ let USERS= [];
 const secretKey= "sup3rSecr3tss";
 
 const generateJwt= (user)=>{
-    payload = {username: user.username};
+const payload = {username: user.username};
     return jwt.sign(payload, secretKey, {expiresIn: "1h"});
 }
     
@@ -71,8 +71,8 @@ app.post("/admin/courses", authenticatejwt, (req, res)=>{
 
 ///course update route
 app.put("/admin/courses/:courseId", authenticatejwt, (req, res)=>{
-    courseId= parseInt(req.params.courseId);
-    courseIndex= COURSES.findIndex(c=> c.id=== courseId);
+    const courseId= parseInt(req.params.courseId);
+    const courseIndex= COURSES.findIndex(c=> c.id=== courseId);
 
     if(courseIndex > -1){
         const updatedCourse= {...COURSES[courseIndex], ...req.body};
@@ -98,7 +98,7 @@ app.post("/users/signup",(req, res)=>{
     }else{
         USERS.push(user);
         const token= generateJwt(user);
-        res.json({message:"User Created Succesfully "});
+        res.json({message:"User Created Succesfully ", token});
     }
 });
 
