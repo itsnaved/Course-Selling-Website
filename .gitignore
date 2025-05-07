@@ -19,6 +19,8 @@ pids
 # OS-specific
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Editor-specific
 .vscode/
@@ -27,7 +29,12 @@ Thumbs.db
 *.ntvs*
 *.njsproj
 *.sln
+*.swp
+*.tmp
 
 # Build
 dist/
 build/
+
+# Coverage
+coverage/

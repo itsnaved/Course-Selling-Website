@@ -1,4 +1,5 @@
 const express= require("express");
+const jwt = require('jsonwebtoken');
 const app= express();
 const port= 3000;
 app.use(express.json());
@@ -7,28 +8,33 @@ let ADMIN= [];
 let COURSES= [];
 let USERS= [];
 
-const adminAuthentication= (req, res, next)=>{
-    const {username, password}= req.headers;
-    let admin= ADMIN.find(a=> a.username=== username && a.password=== password);
-    if(admin){
-        next();
-    }
-    else{
-        res.status(403).json({message: "Admin Authentication Failed"});
-    }
-}
+const secretKey= "sup3rSecr3tss";
 
-const userAuthentication= (req, res, next)=>{
-    const {username, password}= req.headers;
-    let user= USERS.find(a=> a.username=== username && a.password=== password);
-    if(user){
+const generateJwt= (user)=>{
+    payload = {username: user.username};
+    return jwt.sign(payload, secretKey, {expiresIn: "1h"});
+}
+    
+const authenticatejwt=(req, res, next)=>{
+    const authHeader= req.headers.authorization;
+    if(authHeader){
+    const token= authHeader.split(" ")[1];
+    
+    console.log("call from authenticate JWT");
+    console.log(token);
+
+    jwt.verify(token, secretKey,(err, user)=>{
+        if(err){
+            return res.sendStatus(403);
+        }
         req.user= user;
         next();
-    }
-    else{
-        res.status(403).json({message: "User Authentication Failed"});
-    }
-}
+    });
+   }else{
+    res.sendStatus(401);
+   }
+};
+
 // ADMIN Routes
 
 app.post("/admin/signup", (req, res)=>{
@@ -38,38 +44,46 @@ app.post("/admin/signup", (req, res)=>{
         res.status(403).json({message: "Admin Already Exists"});
     }else{
         ADMIN.push(admin);
-        res.json({message: "Admin Created Succesfully"});
+        const token= generateJwt(admin);
+        res.json({message: "Admin Created Succesfully", token});
     }
 });
 
-app.post("/admin/login", adminAuthentication, (req, res)=>{
-    res.json({message: "Logged in succesfully "});
+app.post("/admin/login", (req, res)=>{
+    const {username, password} = req.headers;
+    const admin= ADMIN.find(a=> a.username=== username && a.password=== password);
 
+    if(admin){
+        const token= generateJwt(admin);
+        res.json({message: "Logged in succesful", token});
+    }else{
+        res.status(403).json({message:"Admin Authentication failed"});
+    }
 });
 
-app.post("/admin/courses", adminAuthentication, (req, res)=>{
+app.post("/admin/courses", authenticatejwt, (req, res)=>{
     const course= req.body;
-
-    course.id= Date.now();
+    course.id= COURSES.length +1 ;
     COURSES.push(course);
     res.json({message: "Course Added Succesfully", courseId: course.id});
 
 });
 
 ///course update route
-app.put("/admin/courses/:courseId", adminAuthentication, (req, res)=>{
+app.put("/admin/courses/:courseId", authenticatejwt, (req, res)=>{
     courseId= parseInt(req.params.courseId);
-    course= COURSES.find(c=> c.id=== courseId);
+    courseIndex= COURSES.findIndex(c=> c.id=== courseId);
 
-    if(course){
-        Object.assign(course, req.body);
-        res.json({message: "Message Updated Succesfully"});
+    if(courseIndex > -1){
+        const updatedCourse= {...COURSES[courseIndex], ...req.body};
+        COURSES[courseIndex]= updatedCourse;
+        res.json({message:"Course Updated Succesfully"});
     }else{
-        res.status(404).json({message: "Course not Found"});
+        res.status(404).json({message:"Course not Found"});
     }
 });
 
-app.get("/admin/courses",(req, res)=>{
+app.get("/admin/courses",authenticatejwt,(req, res)=>{
     res.json({courses: COURSES});
 
 });
@@ -82,17 +96,17 @@ app.post("/users/signup",(req, res)=>{
     res.json({message: "User Created Succesfully"});
 });
 
-app.post("/users/login", userAuthentication, (req, res)=>{
+app.post("/users/login", (req, res)=>{
     res.json({message:"Logged in Succesfully"});
 });
 
-app.get("/users/courses", userAuthentication, (req, res)=>{
+app.get("/users/courses", (req, res)=>{
     let filteredCourses = COURSES.filter(c=> c.published);
     res.json({courses: filteredCourses});
 
 });
 
-app.post("/users/courses/:courseId", userAuthentication, (req, res)=>{
+app.post("/users/courses/:courseId", (req, res)=>{
     const courseId = parseInt(req.params.courseId);
     const course= COURSES.find(c=> c.id=== courseId && c.published);
     if(course){
@@ -104,7 +118,7 @@ app.post("/users/courses/:courseId", userAuthentication, (req, res)=>{
 
 });
 
-app.get("/users/purchasedCourses", userAuthentication, (req, res)=>{
+app.get("/users/purchasedCourses", (req, res)=>{
     const purchasedCourses= COURSES.filter(c=> req.user.purchasedCourses.includes(c.id));
     res.json({purchasedCourses});
 })
