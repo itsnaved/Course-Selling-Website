@@ -92,14 +92,21 @@ app.get("/users/courses", userAuthentication, (req, res)=>{
 
 });
 
-app.post("/users/courses/:courseId",(req, res)=>{
-    res.send("Course Purchased Succesfull");
+app.post("/users/courses/:courseId", userAuthentication, (req, res)=>{
+    const courseId = parseInt(req.params.courseId);
+    const course= COURSES.find(c=> c.id=== courseId && c.published);
+    if(course){
+        req.user.purchasedCourses.push(courseId);
+        res.json({message: "Course purchased Succesfully "})
+    }else{
+        res.status(403).json({message:"Course not found"});
+    }
 
 });
 
-app.get("/users/purchasedCourses", (req, res)=>{
-    res.send("Purchasesd courses list");
-
+app.get("/users/purchasedCourses", userAuthentication, (req, res)=>{
+    const purchasedCourses= COURSES.filter(c=> req.user.purchasedCourses.includes(c.id));
+    res.json({purchasedCourses});
 })
 app.listen(port, ()=>{
     console.log(`Example app listening on port: ${port}`);
