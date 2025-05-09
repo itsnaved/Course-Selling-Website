@@ -55,17 +55,19 @@ const authenticatejwt=(req, res, next)=>{
    }
 };
 
-// mongoose.connect(" ",{})
+mongoose.connect("mongodb+srv://####@cluster0.cgty0vd.mongodb.net/courses").then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));;
 
 // ADMIN Routes
-app.post("/admin/signup", (req, res)=>{
+app.post("/admin/signup", async(req, res)=>{
     const {username, password} = req.body;
-    const existingAdmin = ADMIN.find(a=> a.username=== admin.username);
-    if(existingAdmin){
+    const admin = await Admin.findOne({username});
+    if(admin){
         res.status(403).json({message: "Admin Already Exists"});
     }else{
-        ADMIN.push(admin);
-        const token= generateJwt(admin);
+        const newAdmin= new Admin({username, password});
+        await newAdmin.save();
+        const token= jwt.sign({username, role: "admin"},secretKey,{expiresIn:"1h"});
         res.json({message: "Admin Created Succesfully", token});
     }
 });
