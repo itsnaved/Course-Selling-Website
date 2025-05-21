@@ -1,7 +1,7 @@
 const jwt =require("jsonwebtoken");
 const SECRET= "S3cr3t";
 
-const authenticatejwt= (req, res, next)=>{
+const authenticateJwt= (req, res, next)=>{
     const authHeader= req.headers.authorization;
     if(authHeader){
         const token= authHeader.split(' ')[1];
@@ -18,6 +18,6 @@ const authenticatejwt= (req, res, next)=>{
 };
 
 module.exports = {
-    authenticatejwt,
+    authenticateJwt,
     SECRET
 }
