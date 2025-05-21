@@ -1,34 +1,10 @@
 const express= require("express");
-const mongoose= require("mongoose");
 const jwt = require('jsonwebtoken');
 const app= express();
 const port= 3000;
 app.use(express.json());
 
-const secretKey= "sup3rSecr3tss";
-
-const userSchema= new mongoose.Schema({
-    username: String,
-    password: String,
-    purchasedCourses: [{type: mongoose.Schema.Types.ObjectId}]
-});
-
-const adminSchema= new mongoose.Schema({
-    username:  String,
-    password: String
-});
-
-const courseSchema= new mongoose.Schema({
-    title: String,
-    description: String,
-    price: Number,
-    imageLink: String,
-    published: Boolean
-});
-
-const User= mongoose.model("User",userSchema);
-const Admin= mongoose.model("Admin",adminSchema);
-const Course= mongoose.model("Course",courseSchema);    
+const secretKey= "sup3rSecr3tss";  
 
 const generateJwt= (user)=>{
 const payload = {username: user.username};
@@ -52,8 +28,8 @@ const authenticatejwt=(req, res, next)=>{
    }
 };
 
-mongoose.connect("mongodb+srv://naved:naved0709@cluster0.cgty0vd.mongodb.net/courses").then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));;
+mongoose.connect("mongod-URL").then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 // ADMIN Routes
 app.post("/admin/signup", async(req, res)=>{
