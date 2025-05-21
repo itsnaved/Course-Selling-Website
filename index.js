@@ -1,32 +1,13 @@
 const express= require("express");
-const jwt = require('jsonwebtoken');
 const app= express();
 const port= 3000;
 app.use(express.json());
 
-const secretKey= "sup3rSecr3tss";  
 
 const generateJwt= (user)=>{
 const payload = {username: user.username};
     return jwt.sign(payload, secretKey, {expiresIn: "1h"});
 }
-    
-const authenticatejwt=(req, res, next)=>{
-    const authHeader= req.headers.authorization;
-    if(authHeader){
-    const token= authHeader.split(" ")[1];
-
-    jwt.verify(token, secretKey,(err, user)=>{
-        if(err){
-            return res.sendStatus(403);
-        }
-        req.user= user;
-        next();
-    });
-   }else{
-    res.sendStatus(401);
-   }
-};
 
 mongoose.connect("mongod-URL").then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
