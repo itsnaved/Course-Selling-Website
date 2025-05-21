@@ -39,9 +39,6 @@ const authenticatejwt=(req, res, next)=>{
     const authHeader= req.headers.authorization;
     if(authHeader){
     const token= authHeader.split(" ")[1];
-    
-    console.log("call from authenticate JWT");
-    console.log(token);
 
     jwt.verify(token, secretKey,(err, user)=>{
         if(err){
@@ -55,7 +52,7 @@ const authenticatejwt=(req, res, next)=>{
    }
 };
 
-mongoose.connect("mongodb+srv://####@cluster0.cgty0vd.mongodb.net/courses").then(() => console.log("MongoDB connected"))
+mongoose.connect("mongodb+srv://naved:naved0709@cluster0.cgty0vd.mongodb.net/courses").then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));;
 
 // ADMIN Routes
